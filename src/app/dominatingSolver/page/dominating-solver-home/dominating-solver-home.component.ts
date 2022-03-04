@@ -6,6 +6,7 @@ import {SchoningSolverService} from "../../service/schoningSolver/schoning-solve
 import {GroverSolverService} from "../../service/groverSolver/grover-solver.service";
 import {EChartsOption} from "echarts/types/dist/echarts";
 import {PureStateQubit} from "../../model/PureStateQubit";
+import {OrderListOfPureStateQubitService} from "../../../common/service/orderListOfPureStateQubit/order-list-of-pure-state-qubit.service";
 
 @Component({
   selector: 'app-dominating-solver-home',
@@ -15,6 +16,7 @@ import {PureStateQubit} from "../../model/PureStateQubit";
 export class DominatingSolverHomeComponent implements OnInit {
 
   private satSetOfAdjacencyMatrix: number[][] = [];
+  public tenTopAnswerList: PureStateQubit[][] = [];
   private adjacencyMatrix: number[][] = [];
   private maxLengthAnswer: number = 0;
   public chartOptionList: EChartsOption[] = [{}];
@@ -22,10 +24,20 @@ export class DominatingSolverHomeComponent implements OnInit {
   constructor(private satProducerFromAdjacencyMatrixService: SATProducerFromAdjacencyMatrixService,
               private controlQubitDataBaseService: ControlQubitDataBaseService,
               private binaryConverterNumberService: BinaryConverterNumberService,
+              private orderListOfPureStateQubitService: OrderListOfPureStateQubitService,
               private schoningSolverService: SchoningSolverService,
               private groverSolverService: GroverSolverService) { }
 
   ngOnInit(): void {
+    let c = document.getElementById("myCanvas");
+    // @ts-ignore
+    let ctx = c.getContext("2d");
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(300, 150);
+    ctx.stroke();
+
+
     this.createAdjacencyMatrix();
     this.creatSatFromAdjacencyMatrix();
     this.setMaxLengthAnswer(4);
@@ -68,8 +80,8 @@ export class DominatingSolverHomeComponent implements OnInit {
 
   private runIterativeLimitationOnGrover() {
     for (let i=1; i <= this.maxLengthAnswer; i++) {
-      this.runGroverAlgorithmWithSchoning(i);
     }
+    this.runGroverAlgorithmWithSchoning(this.maxLengthAnswer);
   }
 
   private runGroverAlgorithmWithSchoning(maxLengthAnswer: number) {
@@ -82,11 +94,11 @@ export class DominatingSolverHomeComponent implements OnInit {
       let uniformedDb = this.schoningSolverService.uniformProbabilityAfterApplyingSchoning(reductionDb);
       dbAfterOracle = this.groverSolverService.runOracleGroverOnDataBase(uniformedDb, this.satSetOfAdjacencyMatrix, maxLengthAnswer);
       if (!this.checkTotalProbabilityIsValid(this.groverSolverService.calculateTotalProbability(dbAfterOracle))) {
-        console.log(i);
         break;
       }
     }
     this.setChartData(dbAfterOracle);
+    this.tenTopAnswerList.push(this.orderListOfPureStateQubitService.findKTopAnswer(dbAfterOracle, 3));
   }
 
   private setChartData(dataBase: PureStateQubit[]) {
@@ -95,7 +107,7 @@ export class DominatingSolverHomeComponent implements OnInit {
     for (let i=0; i<dataBase.length; i++) {
       let num = 0;
       for (let t=0; t<dataBase[i].value.length; t++) {
-        num += (Math.pow(2, t) * dataBase[i].value[t]);
+        num = num + (Math.pow(2, t) * dataBase[i].value[t]);
       }
 
       yValue.push(dataBase[i].probabilityRange * dataBase[i].probabilityRange);
@@ -103,6 +115,12 @@ export class DominatingSolverHomeComponent implements OnInit {
     }
 
     this.chartOptionList.push({
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow',
+        },
+      },
       xAxis: {
         type: 'category',
         data: xValue,
@@ -117,5 +135,9 @@ export class DominatingSolverHomeComponent implements OnInit {
         },
       ],
     });
+  }
+
+  public getProbabilityRangeQubit(qubit: PureStateQubit): number {
+    return qubit.probabilityRange * qubit.probabilityRange;
   }
 }

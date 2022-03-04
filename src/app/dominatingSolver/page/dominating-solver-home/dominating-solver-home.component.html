@@ -1,3 +1,14 @@
-<div *ngFor="let chart of chartOptionList" class="mt-3">
+<canvas id="myCanvas" width="300" height="150" style="border:1px solid #d3d3d3;">
+  Your browser does not support the HTML5 canvas tag.</canvas>
+
+<div *ngFor="let chart of chartOptionList; let i=index;" class="mt-3">
   <div echarts [options]="chart" class="demo-chart"></div>
+
+  <div *ngIf="tenTopAnswerList.length > 0">
+    <div *ngFor="let qubit of tenTopAnswerList[i]">
+      {{qubit.value}}
+      <span class="px-2">-</span>
+      {{getProbabilityRangeQubit(qubit)}}
+    </div>
+  </div>
 </div>

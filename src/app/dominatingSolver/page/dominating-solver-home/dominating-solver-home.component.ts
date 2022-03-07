@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit } from '@angular/core';
 import {SATProducerFromAdjacencyMatrixService} from "../../service/SATProducerFromAdjacencyMatrix/satproducer-from-adjacency-matrix.service";
 import {ControlQubitDataBaseService} from "../../service/controlQubitDataBase/control-qubit-data-base.service";
 import {BinaryConverterNumberService} from "../../../common/service/binaryConverterNumberService/binary-converter-number.service";
@@ -7,6 +7,7 @@ import {GroverSolverService} from "../../service/groverSolver/grover-solver.serv
 import {EChartsOption} from "echarts/types/dist/echarts";
 import {PureStateQubit} from "../../model/PureStateQubit";
 import {OrderListOfPureStateQubitService} from "../../../common/service/orderListOfPureStateQubit/order-list-of-pure-state-qubit.service";
+import {NodeGraph} from "../../../utility/model/NodeGraph";
 
 @Component({
   selector: 'app-dominating-solver-home',
@@ -15,6 +16,7 @@ import {OrderListOfPureStateQubitService} from "../../../common/service/orderLis
 })
 export class DominatingSolverHomeComponent implements OnInit {
 
+  public node: NodeGraph;
   private satSetOfAdjacencyMatrix: number[][] = [];
   public tenTopAnswerList: PureStateQubit[][] = [];
   private adjacencyMatrix: number[][] = [];
@@ -26,26 +28,37 @@ export class DominatingSolverHomeComponent implements OnInit {
               private binaryConverterNumberService: BinaryConverterNumberService,
               private orderListOfPureStateQubitService: OrderListOfPureStateQubitService,
               private schoningSolverService: SchoningSolverService,
-              private groverSolverService: GroverSolverService) { }
+              private groverSolverService: GroverSolverService) {
+
+    this.node = new NodeGraph(0, 0);
+  }
 
   ngOnInit(): void {
-    let c = document.getElementById("myCanvas");
+/*    let c = document.getElementById("myCanvas");
     // @ts-ignore
     let ctx = c.getContext("2d");
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(300, 150);
-    ctx.stroke();
+    ctx.stroke();*/
 
 
-    this.createAdjacencyMatrix();
+/*    this.createAdjacencyMatrix();
     this.creatSatFromAdjacencyMatrix();
     this.setMaxLengthAnswer(4);
+    this.runIterativeLimitationOnGrover();*/
+  }
+
+
+  public runAlgorithm(matrix: number[][]) {
+    this.createAdjacencyMatrix(matrix);
+    this.creatSatFromAdjacencyMatrix();
+    this.setMaxLengthAnswer(3);
     this.runIterativeLimitationOnGrover();
   }
 
-  private createAdjacencyMatrix() {
-    this.adjacencyMatrix =
+  private createAdjacencyMatrix(matrix: number[][]) {
+/*    this.adjacencyMatrix =
     [
       [1,0,0,1,1,0,0,0,1,0],
       [0,1,1,0,0,1,1,0,0,0],
@@ -57,7 +70,9 @@ export class DominatingSolverHomeComponent implements OnInit {
       [0,0,1,1,0,1,1,1,0,0],
       [1,0,0,0,0,1,0,0,1,0],
       [0,0,0,1,0,0,0,0,0,1]
-    ];
+    ];*/
+
+    this.adjacencyMatrix = matrix;
   }
 
   private creatSatFromAdjacencyMatrix() {

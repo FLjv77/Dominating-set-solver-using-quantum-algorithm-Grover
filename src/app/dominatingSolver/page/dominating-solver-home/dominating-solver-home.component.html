@@ -1,5 +1,4 @@
-<canvas id="myCanvas" width="300" height="150" style="border:1px solid #d3d3d3;">
-  Your browser does not support the HTML5 canvas tag.</canvas>
+<app-graph-presenter (createdMatrix)="runAlgorithm($event)"></app-graph-presenter>
 
 <div *ngFor="let chart of chartOptionList; let i=index;" class="mt-3">
   <div echarts [options]="chart" class="demo-chart"></div>

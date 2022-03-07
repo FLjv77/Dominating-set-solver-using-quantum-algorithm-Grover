@@ -1,0 +1,31 @@
+<!--
+<button (click)="addNewNode()">+</button>
+<div *ngFor="let node of nodeList; let i=index;" class="relative">
+  <div class="node relative" (cdkDragMoved)="dragMoved($event, i)"
+       cdkDrag [cdkDragFreeDragPosition]="dragNodePositionList[i]">
+    {{node.index}}
+
+    <img class="anim-gear setting" (click)="openSelect(i)"
+         src="../../../../assets/image/settings.svg">
+    <mat-select [id]="'select' + i" class="select-container">
+      <mat-option>Delete Node</mat-option>
+      <mat-option>Delete Node</mat-option>
+      <mat-option>Delete Node</mat-option>
+      <mat-option>Delete Node</mat-option>
+      <mat-option>Delete Node</mat-option>
+    </mat-select>
+  </div>
+
+
+</div>
+-->
+
+<button (click)="addNode()">Add Node</button>
+
+<div *ngFor="let row of matrix; let y=index;" style="margin-top: 10px;">
+  <span (click)="toggleItem(y,x)" style="margin-right: 10px; cursor: pointer;" *ngFor="let item of row; let x=index;">
+    {{item}}
+  </span>
+</div>
+
+<button (click)="sendMatrix()">Calculate</button>

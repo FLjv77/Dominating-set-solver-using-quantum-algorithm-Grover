@@ -9,7 +9,7 @@ import {BinaryConverterNumberService} from "../../../common/service/binaryConver
 export class SchoningSolverService {
 
   constructor(private sATProducerFromAdjacencyMatrixService: SATProducerFromAdjacencyMatrixService,
-              private binaryConverterNumberService: BinaryConverterNumberService) { }
+              private binaryConverterNumberService: BinaryConverterNumberService) {}
 
   public reductionDataBaseUsingSchoningSolver(dataBase: PureStateQubit[], closeSet: number[][]): PureStateQubit[] {
     let reductionDB = new Array<PureStateQubit>();
@@ -24,10 +24,20 @@ export class SchoningSolverService {
     return reductionDB;
   }
 
-  private changeSuggestionAnswerThatUnsatisfiedClose(unsatisfiedClose: number[], suggestionAns: PureStateQubit): PureStateQubit {
+  public changeSuggestionAnswerThatUnsatisfiedClose(unsatisfiedClose: number[], suggestionAns: PureStateQubit): PureStateQubit {
     for (let i=0; i<unsatisfiedClose.length; i++) {
       if (suggestionAns.value[unsatisfiedClose[i]] != 1) {
         suggestionAns.value[unsatisfiedClose[i]] = 1;
+        break;
+      }
+    }
+    return suggestionAns;
+  }
+
+  public changeSuggestionAnswerThatUnsatisfiedAnswerLenght(suggestionAns: PureStateQubit): PureStateQubit {
+    for (let i=0; i<suggestionAns.value.length; i++) {
+      if (suggestionAns.value[i] != 0) {
+        suggestionAns.value[i] = 0;
         break;
       }
     }
@@ -49,16 +59,11 @@ export class SchoningSolverService {
               break;
             }
           } else {
-            floatProbability = floatProbability + ((dataBase[i].probabilityRange)*(dataBase[i].probabilityRange));
+            uniformedDB[t].probabilityRange = Math.sqrt((uniformedDB[t].probabilityRange * uniformedDB[t].probabilityRange) + (dataBase[i].probabilityRange)*(dataBase[i].probabilityRange));
             break;
           }
         }
       }
-    }
-
-    let extraProbabilityOverDB = floatProbability / (uniformedDB.length);
-    for (let i=0; i<uniformedDB.length; i++) {
-      uniformedDB[i].probabilityRange = Math.sqrt((uniformedDB[i].probabilityRange * uniformedDB[i].probabilityRange) + extraProbabilityOverDB);
     }
     return uniformedDB;
   }

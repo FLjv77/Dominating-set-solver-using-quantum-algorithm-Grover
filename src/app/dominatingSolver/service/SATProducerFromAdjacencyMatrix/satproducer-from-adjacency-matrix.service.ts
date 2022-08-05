@@ -16,6 +16,7 @@ export class SATProducerFromAdjacencyMatrixService {
       }
       result.push(row);
     }
+
     return result;
   }
 
@@ -41,11 +42,11 @@ export class SATProducerFromAdjacencyMatrixService {
     return unsatisfiedClose;
   }
 
-  public checkIfSATSetIsSatisfyByGivenSet(sat: number[][], answerCandid: number[]): boolean {
-    let res = true;
+  public checkIfSATSetIsSatisfyByGivenSet(sat: number[][], answerCandid: number[]): number {
+    let res = -1;
     for (let i=0; i<sat.length; i++) {
       if (!this.checkCloseIsSatisfyByGivenSet(sat[i], answerCandid)) {
-        res = false;
+        res = i;
         break;
       }
     }

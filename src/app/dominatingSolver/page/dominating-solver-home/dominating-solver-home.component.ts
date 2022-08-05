@@ -8,70 +8,58 @@ import {EChartsOption} from "echarts/types/dist/echarts";
 import {PureStateQubit} from "../../model/PureStateQubit";
 import {OrderListOfPureStateQubitService} from "../../../common/service/orderListOfPureStateQubit/order-list-of-pure-state-qubit.service";
 import {NodeGraph} from "../../../utility/model/NodeGraph";
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-dominating-solver-home',
   templateUrl: './dominating-solver-home.component.html',
   styleUrls: ['./dominating-solver-home.component.scss']
 })
-export class DominatingSolverHomeComponent implements OnInit {
 
+export class DominatingSolverHomeComponent implements OnInit {
+  private baseForBestClassicAlhorithem: number = 1.5137;
+  public order = 0;
+  public maxOrder = 0;
+  public showresualt: boolean = false;
+
+  private stopAlgorithm: boolean = false;
   public node: NodeGraph;
   private satSetOfAdjacencyMatrix: number[][] = [];
   public tenTopAnswerList: PureStateQubit[][] = [];
   private adjacencyMatrix: number[][] = [];
   private maxLengthAnswer: number = 0;
+  public maxLengthAnswerControl = new FormControl();
   public chartOptionList: EChartsOption[] = [{}];
 
   constructor(private satProducerFromAdjacencyMatrixService: SATProducerFromAdjacencyMatrixService,
               private controlQubitDataBaseService: ControlQubitDataBaseService,
-              private binaryConverterNumberService: BinaryConverterNumberService,
               private orderListOfPureStateQubitService: OrderListOfPureStateQubitService,
               private schoningSolverService: SchoningSolverService,
               private groverSolverService: GroverSolverService) {
 
     this.node = new NodeGraph(0, 0);
+    this.subscribeCheckStopAlgorithem();
   }
 
   ngOnInit(): void {
-/*    let c = document.getElementById("myCanvas");
-    // @ts-ignore
-    let ctx = c.getContext("2d");
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(300, 150);
-    ctx.stroke();*/
-
-
-/*    this.createAdjacencyMatrix();
-    this.creatSatFromAdjacencyMatrix();
-    this.setMaxLengthAnswer(4);
-    this.runIterativeLimitationOnGrover();*/
   }
 
+  private subscribeCheckStopAlgorithem() {
+    this.groverSolverService.handleStopConditionAlgorithem.subscribe((res: boolean) => {
+      this.stopAlgorithm = res;
+      this.maxOrder = this.getMaximumOrder();
+      this.showresualt = true;
+    });
+  }
 
   public runAlgorithm(matrix: number[][]) {
     this.createAdjacencyMatrix(matrix);
     this.creatSatFromAdjacencyMatrix();
-    this.setMaxLengthAnswer(3);
+    this.setMaxLengthAnswer();
     this.runIterativeLimitationOnGrover();
   }
 
   private createAdjacencyMatrix(matrix: number[][]) {
-/*    this.adjacencyMatrix =
-    [
-      [1,0,0,1,1,0,0,0,1,0],
-      [0,1,1,0,0,1,1,0,0,0],
-      [0,1,1,0,1,1,0,1,0,0],
-      [1,0,0,1,0,0,0,1,0,1],
-      [1,0,1,0,1,1,0,0,0,0],
-      [0,1,1,0,1,1,0,1,1,0],
-      [0,1,0,0,0,0,1,1,0,0],
-      [0,0,1,1,0,1,1,1,0,0],
-      [1,0,0,0,0,1,0,0,1,0],
-      [0,0,0,1,0,0,0,0,0,1]
-    ];*/
-
     this.adjacencyMatrix = matrix;
   }
 
@@ -81,12 +69,12 @@ export class DominatingSolverHomeComponent implements OnInit {
   }
 
   private getOrderNewGroverSolution(): number {
-    let level =this.satProducerFromAdjacencyMatrixService.getSatLevel(this.satSetOfAdjacencyMatrix);
+    let level = this.satProducerFromAdjacencyMatrixService.getSatLevel(this.satSetOfAdjacencyMatrix);
     return Math.floor(this.groverSolverService.getMaxOrderGroverWithSchoning(this.adjacencyMatrix.length, level));
   }
 
-  private setMaxLengthAnswer(length: number) {
-    this.maxLengthAnswer = length;
+  private setMaxLengthAnswer() {
+    this.maxLengthAnswer = this.maxLengthAnswerControl.value;
   }
 
   private checkTotalProbabilityIsValid(probability: number): boolean {
@@ -94,24 +82,53 @@ export class DominatingSolverHomeComponent implements OnInit {
   }
 
   private runIterativeLimitationOnGrover() {
-    for (let i=1; i <= this.maxLengthAnswer; i++) {
-    }
     this.runGroverAlgorithmWithSchoning(this.maxLengthAnswer);
   }
 
-  private runGroverAlgorithmWithSchoning(maxLengthAnswer: number) {
-    let order = this.getOrderNewGroverSolution();
-    let dbAfterOracle = new Array<PureStateQubit>();
+  private checkStopLoopCondition(dataBase: PureStateQubit[], index: number): boolean {
+    let res = true;
+    let listOfProbability = [];
+    let maxProbablity_1_index = -1;
+    let maxProbablity_2_index = -1;
+    let maxProbablity_3_index = -1;
 
-    for (let i=0; i<order; i++) {
-      let db = this.controlQubitDataBaseService.initializeAndGetDataBase(this.adjacencyMatrix.length);
-      let reductionDb = this.schoningSolverService.reductionDataBaseUsingSchoningSolver(db, this.satSetOfAdjacencyMatrix);
-      let uniformedDb = this.schoningSolverService.uniformProbabilityAfterApplyingSchoning(reductionDb);
-      dbAfterOracle = this.groverSolverService.runOracleGroverOnDataBase(uniformedDb, this.satSetOfAdjacencyMatrix, maxLengthAnswer);
-      if (!this.checkTotalProbabilityIsValid(this.groverSolverService.calculateTotalProbability(dbAfterOracle))) {
-        break;
-      }
+    for(let i=0; i < dataBase.length; i++) {
+      if(dataBase[i].probabilityRange > maxProbablity_1_index) maxProbablity_1_index = i;
+      else if(dataBase[i].probabilityRange > maxProbablity_2_index && dataBase[i].probabilityRange < maxProbablity_1_index) maxProbablity_2_index = i;
+      else if(dataBase[i].probabilityRange > maxProbablity_3_index && dataBase[i].probabilityRange < maxProbablity_2_index) maxProbablity_3_index = i;
+
+      listOfProbability.push(dataBase[i].probabilityRange *   1000);
     }
+
+    if(
+      this.satProducerFromAdjacencyMatrixService.checkIfSATSetIsSatisfyByGivenSet(this.satSetOfAdjacencyMatrix, dataBase[maxProbablity_1_index].value) == -1
+    ) res = false;
+    else if(
+      this.satProducerFromAdjacencyMatrixService.checkIfSATSetIsSatisfyByGivenSet(this.satSetOfAdjacencyMatrix, dataBase[maxProbablity_2_index].value) == -1
+    ) res = false;
+    else if (
+      this.satProducerFromAdjacencyMatrixService.checkIfSATSetIsSatisfyByGivenSet(this.satSetOfAdjacencyMatrix, dataBase[maxProbablity_3_index].value) == -1
+    ) res = false;
+    return res;
+  }
+
+  private getMaximumOrder(): number {
+    return Math.pow(this.baseForBestClassicAlhorithem, this.adjacencyMatrix.length);
+  }
+
+  private runGroverAlgorithmWithSchoning(maxLengthAnswer: number) {
+    //TODO => CHANGE THE WAY GET ORDER
+    let dbAfterOracle = new Array<PureStateQubit>();
+    let db = this.controlQubitDataBaseService.initializeAndGetDataBase(this.adjacencyMatrix.length);
+    while (!this.stopAlgorithm) {
+      dbAfterOracle = this.groverSolverService.runOracleGroverOnDataBase(db, this.satSetOfAdjacencyMatrix, maxLengthAnswer);
+      db = this.schoningSolverService.uniformProbabilityAfterApplyingSchoning(dbAfterOracle);
+
+      this.order ++;
+
+      if((this.order >= this.getMaximumOrder())) break;
+    }
+
     this.setChartData(dbAfterOracle);
     this.tenTopAnswerList.push(this.orderListOfPureStateQubitService.findKTopAnswer(dbAfterOracle, 3));
   }

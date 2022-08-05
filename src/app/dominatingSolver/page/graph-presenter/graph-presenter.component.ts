@@ -44,27 +44,4 @@ export class GraphPresenterComponent implements OnInit {
     this.matrix[x][y] = this.matrix[x][y] == 0 ? 1:0;
     this.matrix[y][x] = this.matrix[x][y];
   }
-/*
-  public addNewNode() {
-    let index = this.nodeList.length;
-    this.nodeList.push(new NodeGraph(index, index));
-    this.dragNodePositionList.push({x: this.nodeList[index].xPosition, y: this.nodeList[index].yPosition});
-  }
-
-  dragMoved(event: CdkDragMove, index: number) {
-    this.nodeList[index].xPosition = event.pointerPosition.x;
-    this.nodeList[index].yPosition = event.pointerPosition.y;
-    this.changePositionNode();
-  }
-
-
-
-  public changePositionNode() {
-//    this.node.resetNodePosition(this.node.xPosition, this.node.yPosition);
-  }
-
-  public openSelect(index: number) {
-    let obj = document.getElementById('select' + index);
-    if (obj !== null) obj.click();
-  }*/
 }

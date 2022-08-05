@@ -8,6 +8,7 @@ import {SharedModule} from "../shared/shared.module";
 import {GraphPresenterComponent} from "../../dominatingSolver/page/graph-presenter/graph-presenter.component";
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import {MatSelectModule} from "@angular/material/select";
+import { ReactiveFormsModule } from '@angular/forms';
 
 
 @NgModule({
@@ -22,7 +23,8 @@ import {MatSelectModule} from "@angular/material/select";
       echarts: () => import('echarts')
     }),
     DragDropModule,
-    MatSelectModule
+    MatSelectModule,
+    ReactiveFormsModule
   ]
 })
 export class DominatingSolverModule { }
